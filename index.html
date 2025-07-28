@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lucky Winner Spinner Wheel</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .wheel-container {
+            position: relative;
+            width: 400px;
+            height: 400px;
+            margin: 0 auto 30px;
+        }
+
+        .wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.3);
+            transition: transform 3s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .wheel-section {
+            position: absolute;
+            width: 50%;
+            height: 50%;
+            transform-origin: 100% 100%;
+            color: white;
+            font-weight: bold;
+            font-size: 13px;
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: flex-end;
+            justify-content: flex-start;
+            padding-left: 20px;
+            padding-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .wheel-section-text {
+            transform: rotate(-45deg);
+            transform-origin: center;
+            white-space: nowrap;
+            max-width: 120px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.2;
+        }
+
+        .pointer {
+            position: absolute;
+            top: 50%;
+            right: -15px;
+            transform: translateY(-50%);
+            width: 0;
+            height: 0;
+            border-top: 15px solid transparent;
+            border-bottom: 15px solid transparent;
+            border-left: 30px solid #ff4757;
+            z-index: 10;
+            filter: drop-shadow(2px 0 4px rgba(0, 0, 0, 0.3));
+        }
+
+        .center-button {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #ff4757, #ff3838);
+            color: white;
+            border: none;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 20;
+            box-shadow: 0 4px 15px rgba(255, 71, 87, 0.4);
+            transition: all 0.2s;
+        }
+
+        .center-button:hover {
+            transform: translate(-50%, -50%) scale(1.1);
+            box-shadow: 0 6px 20px rgba(255, 71, 87, 0.6);
+        }
+
+        .center-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: translate(-50%, -50%);
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        input[type="text"] {
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            width: 200px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .prize-list {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .prize-list h3 {
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .prize-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .prize-item {
+            background: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .remove-btn {
+            background: #ff4757;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            animation: modalAppear 0.5s ease-out;
+        }
+
+        @keyframes modalAppear {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.7);
+            }
+
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+
+        .winner-text {
+            font-size: 2em;
+            color: #333;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, #ff4757, #ff3838);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .winner-prize {
+            font-size: 1.5em;
+            color: #667eea;
+            font-weight: bold;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 5px solid #667eea;
+        }
+
+        .close-btn {
+            background: #667eea;
+            padding: 15px 30px;
+            font-size: 16px;
+        }
+
+        .spinning {
+            animation: spin 3s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(1800deg);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+
+            .wheel-container {
+                width: 280px;
+                height: 280px;
+            }
+
+            .wheel-section {
+                font-size: 11px;
+                padding-left: 15px;
+                padding-bottom: 15px;
+            }
+
+            .wheel-section-text {
+                max-width: 100px;
+            }
+
+            .center-button {
+                width: 70px;
+                height: 70px;
+                font-size: 14px;
+            }
+
+            h1 {
+                font-size: 1.8em;
+                margin-bottom: 20px;
+            }
+
+            .controls {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            input[type="text"] {
+                width: 100%;
+            }
+
+            .modal-content {
+                padding: 30px 20px;
+                margin: 20px;
+            }
+
+            .winner-text {
+                font-size: 1.5em;
+            }
+
+            .winner-prize {
+                font-size: 1.2em;
+                padding: 15px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .wheel-container {
+                width: 250px;
+                height: 250px;
+            }
+
+            .wheel-section {
+                font-size: 10px;
+                padding-left: 12px;
+                padding-bottom: 12px;
+            }
+
+            .wheel-section-text {
+                max-width: 80px;
+            }
+
+            .center-button {
+                width: 60px;
+                height: 60px;
+                font-size: 12px;
+            }
+
+            h1 {
+                font-size: 1.5em;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🎯 Lucky Winner Spinner</h1>
+
+        <div class="wheel-container">
+            <div class="pointer"></div>
+            <div class="wheel" id="wheel"></div>
+            <button class="center-button" id="spinBtn">SPIN</button>
+        </div>
+
+        <div class="controls">
+            <div class="input-group">
+                <input type="text" id="prizeInput" placeholder="Enter a prize..." maxlength="30">
+                <button onclick="addPrize()">Add Prize</button>
+            </div>
+            <button onclick="resetWheel()">Reset All</button>
+        </div>
+
+        <div class="prize-list">
+            <h3>🏆 Current Prizes</h3>
+            <div class="prize-items" id="prizeList">
+                <div class="prize-item">No prizes added yet!</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Winner Modal -->
+    <div class="modal" id="winnerModal">
+        <div class="modal-content">
+            <div class="winner-text">🎉 Winner! 🎉</div>
+            <div class="winner-prize" id="winnerPrize"></div>
+            <button class="close-btn" onclick="closeModal()">Awesome!</button>
+        </div>
+    </div>
+
+    <script>
+        let prizes = ['🎮 Gaming Mouse', '📱 Phone Case', '🎧 Headphones', '🍕 Pizza Voucher', '☕ Coffee Mug', '📚 Book'];
+        let isSpinning = false;
+
+        const colors = [
+            '#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24',
+            '#6c5ce7', '#fd79a8', '#e17055', '#00b894',
+            '#fdcb6e', '#6c5ce7', '#fd79a8', '#00cec9'
+        ];
+
+        function updateWheel() {
+            const wheel = document.getElementById('wheel');
+            const prizeList = document.getElementById('prizeList');
+
+            if (prizes.length === 0) {
+                wheel.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; color: #666; font-size: 18px;">Add some prizes!</div>';
+                prizeList.innerHTML = '<div class="prize-item">No prizes added yet!</div>';
+                return;
+            }
+
+            // Update wheel sections
+            wheel.innerHTML = '';
+            const sectionAngle = 360 / prizes.length;
+
+            prizes.forEach((prize, index) => {
+                const section = document.createElement('div');
+                section.className = 'wheel-section';
+                section.style.backgroundColor = colors[index % colors.length];
+                section.style.transform = `rotate(${index * sectionAngle}deg)`;
+
+                // Create proper triangular sections
+                const sectionAngleRad = (sectionAngle * Math.PI) / 10;
+                const x = 0 + 10 * Math.cos(sectionAngleRad);
+                const y = 0 + 10 * Math.sin(sectionAngleRad);
+                section.style.clipPath = `polygon(80% 100%, 100% 0%, ${x}% ${y}%)`;
+
+                // Add text with proper positioning
+                const textSpan = document.createElement('div');
+                textSpan.className = 'wheel-section-text';
+                textSpan.textContent = prize.length > 15 ? prize.substring(0, 15) + '...' : prize;
+                section.appendChild(textSpan);
+
+                wheel.appendChild(section);
+            });
+
+            // Update prize list
+            prizeList.innerHTML = '';
+            prizes.forEach((prize, index) => {
+                const item = document.createElement('div');
+                item.className = 'prize-item';
+                item.innerHTML = `
+                    <span>${prize}</span>
+                    <button class="remove-btn" onclick="removePrize(${index})" title="Remove">×</button>
+                `;
+                prizeList.appendChild(item);
+            });
+        }
+
+        function addPrize() {
+            const input = document.getElementById('prizeInput');
+            const prize = input.value.trim();
+
+            if (prize && prizes.length < 12) {
+                prizes.push(prize);
+                input.value = '';
+                updateWheel();
+            } else if (prizes.length >= 12) {
+                alert('Maximum 12 prizes allowed!');
+            }
+        }
+
+        function removePrize(index) {
+            prizes.splice(index, 1);
+            updateWheel();
+        }
+
+        function resetWheel() {
+            prizes = [];
+            updateWheel();
+        }
+
+        function spinWheel() {
+            if (isSpinning || prizes.length === 0) return;
+
+            if (prizes.length === 0) {
+                alert('Please add some prizes first!');
+                return;
+            }
+
+            isSpinning = true;
+            const spinBtn = document.getElementById('spinBtn');
+            const wheel = document.getElementById('wheel');
+
+            spinBtn.disabled = true;
+            spinBtn.textContent = '...';
+
+            // Calculate random spin - adjusted for right-pointing arrow
+            const randomSpins = Math.floor(Math.random() * 5) + 5; // 5-10 full rotations
+            const sectionAngle = 360 / prizes.length;
+            const randomSection = Math.floor(Math.random() * prizes.length);
+
+            // Adjust calculation for right-pointing pointer (0 degrees = right side)
+            const sectionOffset = (360 - (randomSection * sectionAngle) - (sectionAngle / 2)) % 360;
+            const finalAngle = (randomSpins * 360) + sectionOffset;
+
+            // Apply spin
+            wheel.style.transform = `rotate(${finalAngle}deg)`;
+
+            // Show result after animation
+            setTimeout(() => {
+                showWinner(prizes[randomSection]);
+
+                isSpinning = false;
+                spinBtn.disabled = false;
+                spinBtn.textContent = 'SPIN';
+            }, 3000);
+        }
+
+        function showWinner(prize) {
+            document.getElementById('winnerPrize').textContent = prize;
+            document.getElementById('winnerModal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('winnerModal').style.display = 'none';
+        }
+
+        // Event listeners
+        document.getElementById('spinBtn').addEventListener('click', spinWheel);
+        document.getElementById('prizeInput').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') addPrize();
+        });
+
+        // Close modal when clicking outside
+        document.getElementById('winnerModal').addEventListener('click', function (e) {
+            if (e.target === this) closeModal();
+        });
+
+        // Initialize wheel
+        updateWheel();
+    </script>
+</body>
+
+</html>
