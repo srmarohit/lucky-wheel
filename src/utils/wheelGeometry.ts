@@ -14,7 +14,10 @@ export function segmentAngle(prizeCount: number): number {
 
 const toRadians = (deg: number) => (deg * Math.PI) / 180;
 
-function polarPoint(angleDeg: number, radius: number): { x: number; y: number } {
+function polarPoint(
+  angleDeg: number,
+  radius: number,
+): { x: number; y: number } {
   return {
     x: CENTER + radius * Math.cos(toRadians(angleDeg)),
     y: CENTER + radius * Math.sin(toRadians(angleDeg)),
@@ -30,8 +33,8 @@ export function slicePath(startAngle: number, endAngle: number): string {
     `M ${CENTER} ${CENTER}`,
     `L ${start.x} ${start.y}`,
     `A ${RADIUS} ${RADIUS} 0 ${largeArc} 1 ${end.x} ${end.y}`,
-    'Z',
-  ].join(' ');
+    "Z",
+  ].join(" ");
 }
 
 /**
@@ -43,6 +46,49 @@ export function labelArcPath(startAngle: number, endAngle: number): string {
   const start = polarPoint(startAngle, labelRadius);
   const end = polarPoint(endAngle, labelRadius);
   return `M ${start.x} ${start.y} A ${labelRadius} ${labelRadius} 0 0 1 ${end.x} ${end.y}`;
+}
+
+/** Centroid of a slice's label area (~65% radius), with the slice center angle. */
+export function labelPoint(
+  startAngle: number,
+  endAngle: number,
+): { x: number; y: number; angle: number } {
+  const angle = startAngle + (endAngle - startAngle) / 2;
+  const { x, y } = polarPoint(angle, RADIUS * 0.65);
+  return { x, y, angle };
+}
+
+/**
+ * Split a label into word-wrapped lines that each fit within
+ * `maxCharsPerLine`. If more than `maxLines` lines would be needed, the last
+ * line is truncated with an ellipsis so text never overflows its slice.
+ */
+export function wrapLabel(
+  label: string,
+  maxCharsPerLine: number,
+  maxLines = 3,
+): string[] {
+  const words = label.split(/\s+/).filter(Boolean);
+  const lines: string[] = [];
+  let current = "";
+  for (const word of words) {
+    const candidate = current ? `${current} ${word}` : word;
+    if (candidate.length <= maxCharsPerLine) {
+      current = candidate;
+    } else {
+      if (current) lines.push(current);
+      current = word;
+    }
+  }
+  if (current) lines.push(current);
+  if (lines.length <= maxLines) return lines;
+  const kept = lines.slice(0, maxLines);
+  const last = kept[maxLines - 1];
+  kept[maxLines - 1] =
+    last.length > maxCharsPerLine - 1
+      ? `${last.slice(0, Math.max(1, maxCharsPerLine - 1))}…`
+      : `${last}…`;
+  return kept;
 }
 
 /**
